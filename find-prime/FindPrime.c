@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <limits.h>
 
 
 //Simple recursive function to test for prime by testing against factors 
@@ -15,7 +16,7 @@ bool isPrime(int n, int primestore[], int index) {
   return true;
 }
 
-//function to find primes between two values and returns the number of Primes found
+//recursive function to find primes between two values and returns the number of Primes found
 void findPrimes(int min, int max, int primestore[], int *index) {
   int i = 0;
 
@@ -56,12 +57,13 @@ void findPrimes(int min, int max, int primestore[], int *index) {
       
     
     
-
+//tongue in cheek - this methos is much slower than a linear check, but it was fun
 bool fastPrime(int n) {
-  int knownprimes[16000];
-  int index = 0;
+  int knownprimes[256000] = {2, 0};
+  int index = 1;
   int i;
   int j;
+  char c;
 
   //do the quick checks
   if (n <= 1) {
@@ -73,19 +75,26 @@ bool fastPrime(int n) {
   else if (n % 2 == 0) { //get the even numbers out of the way
     return false;
   }
-  
-  //initialize the array
-  for (i = 0; i < 16000; i++) {
-    knownprimes[i] = 0;
-  }
-  //add the first two primes - gimmes
-  knownprimes[0] = 2;
-  index = 1; //set the marker to the end of the array
 
   j = (n / 2) + (n % 2); //carve the field in half
   findPrimes(3, j, knownprimes, &index);
   printf("Found %d Primes to halfway point.\n", index);
+  printf("Do you want to see this list of Primes? (y/n): ");
+  scanf("%c", &c);
+  if (c == 'y') {
+    for (i = 0; i < index; i++) {
+      printf("%d | ", knownprimes[i]);
+    }
+    printf("\n");
+  }
+  else if (c == 'n') {
+    printf("Your loss.\n");
+  }
+  else {
+    printf("You're fucking crazy!\n");
+  }
 
+  
   if (isPrime(n, knownprimes, index)) {
     return true;
   }
@@ -97,8 +106,9 @@ int main (void) {
   int j;
   bool ans;
 
+
   //Ask for the integer that we will check for prime
-  printf("Enter your suggested prime between 0-32000: ");
+  printf("Enter your suggested prime between 0-%d: ", INT_MAX);
   scanf("%d", &j);  //take a number
   
   //now check against invalid numbers
@@ -106,7 +116,7 @@ int main (void) {
     printf("You've entered a value less than 2, and is therefor invalid.\n");
     return EXIT_SUCCESS;
   }
-  else if (j > 32000) {
+  else if (j >= INT_MAX) {
     printf("You've entered a value that is too large.\n");
     return EXIT_SUCCESS;
   }
@@ -117,6 +127,7 @@ int main (void) {
     }
     else printf("Your integer %d is not Prime.\n", j);
   }
+
 
   //end program
   return EXIT_SUCCESS;
