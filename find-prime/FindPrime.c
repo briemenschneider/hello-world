@@ -80,7 +80,7 @@ bool fastPrime(int n) {
   findPrimes(3, j, knownprimes, &index);
   printf("Found %d Primes to halfway point.\n", index);
   printf("Do you want to see this list of Primes? (y/n): ");
-  scanf("%c", &c);
+  scanf(" %c", &c);
   if (c == 'y') {
     for (i = 0; i < index; i++) {
       printf("%d | ", knownprimes[i]);
