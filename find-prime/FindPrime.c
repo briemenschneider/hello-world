@@ -19,8 +19,11 @@ bool solvePrime (int number, int **primestore, size_t *sz);
 
 
  
-/* argCheckerFP takes the command line arguements, and a file pointer and checks against the expected format of the command line inputs.
- It will then open a file of the name provided, if the file doesn't exist it will create one of that name.  If no name is provided, it will open a file with the default name. */
+/* 
+argCheckerFP takes the command line arguements, and a file pointer and checks against the expected format of the command line inputs.
+It will then open a file of the name provided, if the file doesn't exist it will create one of that name.  
+If no name is provided, it will open a file with the default name.
+*/
 bool argCheckerFP(int argc, char**argv, FILE **f) {
   const char *defaultpath = DEFAULT_PATH;
   
@@ -48,7 +51,7 @@ int getUserInputFP(int *useri) {
   int i = 0;
   bool valid = false;
 
-  //Ask the options 0 find if a number is prime, 1 find all primes up to a number, 2 verify (brute force) a prime, 3 quit
+  //Ask the options: 0 find if a number is prime, 1 find all primes up to a number, 2 verify (brute force) a prime, 3 quit
   do {
     printf("What would you like to do?\n");
     printf("Enter 0 if you'd like to check if a number is a prime.\n");
@@ -124,6 +127,21 @@ bool brutePrime (int number) {
 }
 
 /*
+isPrime simply checks a number against the prime store.
+It assumes the prime store is sufficient (only called if the primestore has been filled.
+*/
+bool isPrime(int number, int *primestore, size_t sz) {
+  size_t i;
+  
+  for (i = 0; i < sz; i++) { //the primestore has all numbers we need, so only check against it
+    if (number % primestore[i] == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/*
 The findPrimes function finds all primes up to and including number.
 It saves what it finds in the primestore and updates the size (sz) of the primestore appropriately.
 If the primestore already has the answer, it does nothing. 
@@ -152,7 +170,7 @@ void findPrimes (int number, int **primestore, size_t *sz) {
     while (candidate <= number) {
       if (solvePrime(candidate, primestore, sz)) {
 	*sz = *sz + 1;
-	*primestore = realloc(*primestore, *sz*sizeof(candidate));
+	*primestore = realloc(*primestore, *sz * (sizeof(candidate)));
 	(*primestore)[*sz-1] = candidate;
 	candidate++;
       }
@@ -170,24 +188,21 @@ If the primestore isn't big enough to hold all those values, it updates the prim
 Assumes valid input > 1. 
 */
 bool solvePrime (int number, int **primestore, size_t *sz) {
-  size_t i;
 
   if (*sz == 0) { //then we have to build the primestore
     findPrimes((number/2)+1, primestore, sz);
-    return solvePrime(number, primestore, sz);
+    return isPrime(number, *primestore, *sz);
+  }
+  else if (number % 2 == 0) { //quick drop of the even numbers
+    return false;
   }
   //Now we check to see if the prime store has primes up until the halfway point of number and test against them
   else if ((number/2) > (*primestore)[*sz-1]) {//Can't do this check if *sz is 0, so we keep the redundant code
     findPrimes((number/2)+1, primestore, sz);
-    return solvePrime(number, primestore, sz);
+    return isPrime(number, *primestore, *sz);
   }
   else {
-    for (i = 0; i < *sz; i++) { //the primestore has all numbers we need, so only check against it
-      if (number % (*primestore)[i] == 0) {
-	return false;
-      }
-    }
-    return true;
+    return isPrime(number, *primestore, *sz);
   }
 }
     
@@ -206,7 +221,7 @@ size_t loadPrimesFromFile (FILE *f, int **primestore) {
   else {
     rewind(f); //Move to the beginning of the file and read the first size_t, which is the size of the primestore
     fread(&sz, sizeof(sz), 1, f);
-    *primestore = malloc(sz); //add the size of the primestore to the heap to load up
+    *primestore = malloc(sz * sizeof(**primestore)); //add the size of the primestore to the heap to load up
     fread(*primestore, sizeof(**primestore), sz, f);
   }
   if (feof(f)) {
@@ -247,12 +262,19 @@ void printPrimes (int *primestore, size_t sz) {
     f = fopen(outfilename, "w");
     for (i = 0; i < sz; i++) {
       fprintf(f, "%d | ", primestore[i]);
+      if (i % 20 == 0) {
+	fprintf(f, "\n");
+      }
     }
+    fprintf(f, "\n");
     fclose(f);
   }
   else {
     for (i = 0; i < sz; i++) {
       printf("%d | ", primestore[i]);
+      if (i % 20 == 0) {
+        printf("\n");
+      }
     }
   }
 }
